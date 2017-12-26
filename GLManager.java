@@ -15,8 +15,27 @@ public class GLManager implements GLSurfaceView.Renderer {
 
     private GLScene mCurrentScene = null;
 
-    public GLManager(Context context) {
+    private static GLManager mInstance = null;
 
+    private boolean alreadyStarted = false;
+
+    private GLManager(Context context) {
+
+    }
+
+    public static GLManager GetInstance(Context context)
+    {
+        if (mInstance == null)
+        {
+            mInstance = new GLManager((context);
+        }
+
+        return mInstance;
+    }
+
+    public static GLManager GetInstance()
+    {
+        return mInstance;
     }
 
     @Override
@@ -35,15 +54,20 @@ public class GLManager implements GLSurfaceView.Renderer {
 
         if (mCurrentScene != null)
         {
-
+            if (!alreadyStarted)
+            {
+                mCurrentScene.onStart();
+                alreadyStarted = true;
+            }
+            mCurrentScene.draw();
         }
     }
 
-    public GLScene getmCurrentScene() {
+    public GLScene getCurrentScene() {
         return mCurrentScene;
     }
 
-    public void setmCurrentScene(GLScene mCurrentScene) {
-        this.mCurrentScene = mCurrentScene;
+    public void setCurrentScene(GLScene currentScene) {
+        this.mCurrentScene = currentScene;
     }
 }

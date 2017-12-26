@@ -3,11 +3,104 @@ package com.gillabs.gldev.glandroidengine;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 /**
  * Created by gil on 12/12/17.
  */
 public class GLMaterial {
     private static final String TAG = "GLMaterial";
+    private List<String> mUniformLocationsString;
+    private List<String> mAttribLocationsString;
+
+    String mVertexShaderSource;
+    String mFragmentShaderSource;
+
+    int mShaderProgramHandle;
+
+    private HashMap<String, Integer> mAttribLocations;
+    private HashMap<String, Integer> mUniformLocations;
+
+    public GLMaterial(List<String> attribNames, List<String> uniformNames) {
+
+        mAttribLocationsString = attribNames;
+        mUniformLocationsString = uniformNames;
+
+        mAttribLocations = new HashMap<String, Integer>();
+        mUniformLocations = new HashMap<String, Integer>();
+    }
+
+    public String getVertexShaderSource() {
+        return mVertexShaderSource;
+    }
+
+    public void setVertexShaderSource(String vertexShaderSource) {
+        this.mVertexShaderSource = vertexShaderSource;
+    }
+
+    public String getFragmentShaderSource() {
+        return mFragmentShaderSource;
+    }
+
+    public void setFragmentShaderSource(String fragmentShaderSource) {
+        this.mFragmentShaderSource = fragmentShaderSource;
+    }
+
+    public int getAttribHandle(String attribName)
+    {
+        if (mAttribLocations.containsKey(attribName))
+        {
+            return mAttribLocations.get(attribName);
+        }
+
+        return -1;
+    }
+
+    public int getUniformHandle(String uniformName)
+    {
+        if (mUniformLocations.containsKey(uniformName))
+        {
+            return mUniformLocations.get(uniformName);
+        }
+
+        return -1;
+    }
+
+    public void onStart()
+    {
+        final int vertexShaderHandle = compileShader(GLES20.GL_VERTEX_SHADER, mVertexShaderSource);
+        final int fragmentShaderHandle = compileShader(GLES20.GL_FRAGMENT_SHADER, mFragmentShaderSource);
+
+        String[] attrStrings = new String[mAttribLocationsString.size()];
+
+        mShaderProgramHandle = createAndLinkProgram(vertexShaderHandle, fragmentShaderHandle,
+                mAttribLocationsString.toArray(attrStrings));
+
+        String currentHandleName;
+
+        for (int i = 0; i < mAttribLocationsString.size(); i++) {
+            currentHandleName = mAttribLocationsString.get(i);
+
+            mAttribLocations.put(currentHandleName,
+                    GLES20.glGetAttribLocation(mShaderProgramHandle, currentHandleName)
+                    );
+        }
+
+        for (int i = 0; i < mUniformLocationsString.size(); i++) {
+            currentHandleName = mUniformLocationsString.get(i);
+
+            mUniformLocations.put(currentHandleName,
+                    GLES20.glGetUniformLocation(mShaderProgramHandle, currentHandleName)
+            );
+        }
+    }
+
+    public void enableMaterial()
+    {
+        GLES20.glUseProgram(mShaderProgramHandle);
+    }
 
     /**
      * Helper function to compile a shader.

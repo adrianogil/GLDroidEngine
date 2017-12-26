@@ -11,15 +11,31 @@ import java.nio.FloatBuffer;
  */
 public class GLBuffer {
 
+    public enum GLBufferType {
+        ElementArrayBuffer,
+        ArrayBuffer
+    }
+
     private FloatBuffer mBufferData;
     /** How many bytes per float. */
     private final int mBytesPerFloat = 4;
+
     private int mDataSize;
+    private GLBufferType mGLBufferType;
 
-    public void createBuffer(float[] data, int dataSize)
+
+    public GLBuffer(GLBufferType gLBufferType) {
+        this.mDataSize = 1;
+        this.mGLBufferType = gLBufferType;
+    }
+
+    public GLBuffer(GLBufferType gLBufferType, int dataSize) {
+        this.mDataSize = dataSize;
+        this.mGLBufferType = gLBufferType;
+    }
+
+    public void createBuffer(float[] data)
     {
-        mDataSize = dataSize;
-
         mBufferData = ByteBuffer.allocateDirect(data.length * mBytesPerFloat)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
         mBufferData.put(data).position(0);
