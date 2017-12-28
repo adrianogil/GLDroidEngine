@@ -27,7 +27,7 @@ public class GLManager implements GLSurfaceView.Renderer {
     {
         if (mInstance == null)
         {
-            mInstance = new GLManager((context);
+            mInstance = new GLManager(context);
         }
 
         return mInstance;
@@ -44,7 +44,9 @@ public class GLManager implements GLSurfaceView.Renderer {
     }
 
     @Override
-    public void onSurfaceChanged(GL10 gl10, int i, int i1) {
+    public void onSurfaceChanged(GL10 gl10, int width, int height) {
+
+        GLCamera.mainCamera().onViewportChanged(width, height);
 
     }
 

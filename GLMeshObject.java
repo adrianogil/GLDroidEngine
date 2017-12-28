@@ -1,5 +1,8 @@
 package com.gillabs.gldev.glandroidengine;
 
+import android.opengl.GLES20;
+import android.opengl.Matrix;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +35,9 @@ public class GLMeshObject extends GLObject {
 
     private int mTotalCustomBuffer;
 
+    /** Allocate storage for the final combined matrix. This will be passed into the shader program. */
+    private float[] mMVPMatrix = new float[16];
+
     public GLMeshObject(String objectName) {
         super(objectName);
 
@@ -43,6 +49,8 @@ public class GLMeshObject extends GLObject {
         mBuffers = new HashMap<String, GLBuffer>();
 
         mBufferPositionName = "aVertexPosition";
+
+        mUniformNames.add("u_MVPMatrix");
 
         mCustomBuffersName = new ArrayList<String>();
         mCustomBuffersData = new ArrayList<float[]>();
@@ -97,7 +105,21 @@ public class GLMeshObject extends GLObject {
     public void draw() {
         super.draw();
 
+        enableBuffers();
 
+        mMaterial.enableMaterial();
+
+        // This multiplies the view matrix by the model matrix, and stores the result in the MVP matrix
+        // (which currently contains model * view).
+        Matrix.multiplyMM(mMVPMatrix, 0, GLCamera.mainCamera().getViewMatrix(), 0, getModelMatrix(), 0);
+
+        // This multiplies the modelview matrix by the projection matrix, and stores the result in the MVP matrix
+        // (which now contains model * view * projection).
+        Matrix.multiplyMM(mMVPMatrix, 0, GLCamera.mainCamera().getProjectionMatrix(), 0, mMVPMatrix, 0);
+
+        GLES20.glUniformMatrix4fv(mMaterial.getUniformHandle("u_MVPMatrix")
+                , 1, false, mMVPMatrix, 0);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
     }
 
     @Override
@@ -111,7 +133,11 @@ public class GLMeshObject extends GLObject {
     public void onStart() {
         super.onStart();
 
+        generateMaterial();
 
+        createBuffers();
+
+        mMaterial.onStart();
     }
 
     protected void createBuffers()
@@ -156,7 +182,7 @@ public class GLMeshObject extends GLObject {
         }
     }
 
-    protected void generateMaterial()
+    public void generateMaterial()
     {
         if (mMaterial == null)
         {
